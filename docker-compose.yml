@@ -1,0 +1,73 @@
+# =====================================================
+# DOCKER COMPOSE - Backend API + Base de Datos MySQL
+# Proyecto: Sistema de Gestión de Usuarios - Innovatech Chile
+# =====================================================
+
+version: '3.8'
+
+services:
+  # Servicio Backend - API REST Node.js/Express
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: backend-api
+    image: backend-api:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - DB_HOST=mysql-db
+      - DB_USER=${DB_USER:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-root_password_segura}
+      - DB_NAME=${DB_NAME:-proyecto_db}
+      - DB_PORT=3306
+      - NODE_ENV=production
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+  # Servicio de Base de Datos - MySQL 8.0
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-database
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD:-root_password_segura}
+      - MYSQL_DATABASE=${DB_NAME:-proyecto_db}
+      - MYSQL_CHARACTER_SET_SERVER=utf8mb4
+      - MYSQL_COLLATION_SERVER=utf8mb4_unicode_ci
+    # Named volume para persistencia de datos
+    # Se usa named volume en lugar de bind mount porque:
+    # 1. Docker gestiona el ciclo de vida del volumen
+    # 2. Mejor rendimiento en lectura/escritura
+    # 3. Portabilidad entre entornos (dev, staging, prod)
+    # 4. No depende de rutas absolutas del host
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init-db:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    networks:
+      - backend-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD:-root_password_segura}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+# Named volumes para persistencia de datos
+# Los datos de MySQL se mantienen incluso si el contenedor se elimina o reinicia
+volumes:
+  mysql_data:
+    driver: local
+    name: innovatech_mysql_data
+
+networks:
+  backend-network:
+    driver: bridge

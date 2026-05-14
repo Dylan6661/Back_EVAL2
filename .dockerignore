@@ -1,0 +1,26 @@
+# Git
+.git
+.gitignore
+
+# Dependencias (se instalan en el build)
+node_modules/
+
+# Variables de entorno locales
+.env
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
+
+# Documentación
+*.md
+LICENSE
+
+# Logs
+*.log
+npm-debug.log*
