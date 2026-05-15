@@ -3,8 +3,6 @@
 # Proyecto: Sistema de Gestión de Usuarios - Innovatech Chile
 # =====================================================
 
-version: '3.8'
-
 services:
   # Servicio Backend - API REST Node.js/Express
   backend:
